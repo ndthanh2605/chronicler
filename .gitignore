@@ -1,0 +1,26 @@
+# Secrets — never commit
+settings.json
+*.env
+.env*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Rust / Tauri
+target/
+node_modules/
+dist/
+
+# Models (large binaries)
+models/
+*.gguf
+*.bin
+*.pt
+
+# OS
+.DS_Store
+Thumbs.db
