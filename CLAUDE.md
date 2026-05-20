@@ -30,6 +30,12 @@ Read in this order at the start of every session:
 When picking up an **in-progress story**, read the story's workpad sibling first. The workpad
 contains prior attempt context and takes priority over the general reading order above.
 
+`AGENTS.md` is the cross-tool agent entry point (Codex, generic OpenAI-style runtimes) and
+adds GitNexus tool-discipline rules for **application-code work only**. Those rules do not
+apply to harness/docs work and never override the harness skills below — when they overlap,
+the harness wins. Phase 0 has no application code yet, so the GitNexus block in `AGENTS.md`
+becomes load-bearing only once Story S01 lands.
+
 ## Skills
 
 Use these skills for all development operations. Do not use the global `commit-commands` skills.
@@ -41,6 +47,25 @@ Use these skills for all development operations. Do not use the global `commit-c
 | `harness-git-commit` | Every commit (enforces conventional commit format + security checks) |
 | `harness-git-push` | Push branch and open/update PR with story Evidence link |
 | `harness-git-land` | Merge approved PR and close the story |
+
+## Context Management
+
+When context-mode is active (session prompt contains `<context_window_protection>`), prefer
+its tools over raw Bash or Read for any operation that produces more than ~20 lines of output:
+
+| Task | Use | Not |
+|---|---|---|
+| Explore codebase, run shell commands | `ctx_batch_execute` | Bash with >20-line output |
+| Follow-up questions on findings | `ctx_search` (batch queries in one call) | Re-running commands |
+| Fetch external docs or pages | `ctx_fetch_and_index` | WebFetch |
+| Analyse a large file or log | `ctx_execute_file` | Read |
+| Create or edit files | Write / Edit (native tools) | ctx_execute |
+
+Bash is still correct for: `git`, `mkdir`, `rm`, `mv`, and any command whose output is
+known to be short (e.g. `git status`, `which`, version flags).
+
+If context-mode MCP tools become unavailable mid-session, flag it to the user immediately
+before falling back to direct Bash/Read calls.
 
 ## Architecture
 

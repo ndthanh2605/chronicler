@@ -24,3 +24,5 @@ models/
 # OS
 .DS_Store
 Thumbs.db
+.gitnexus
+.claude/skills/gitnexus/
