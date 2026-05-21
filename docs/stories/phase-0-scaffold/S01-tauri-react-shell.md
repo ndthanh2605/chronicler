@@ -6,7 +6,7 @@ sidecar in this story.
 
 ## Status
 
-`todo`
+`in_progress`
 
 ## Lane
 
@@ -44,12 +44,14 @@ existing behavior to disturb.
   scope** for this story (Phase 6); unsigned output is acceptable.
 - [ ] AC4 — A first `validate:quick` script exists at the repo root (e.g.
   `scripts/validate-quick.sh` or an npm/just task) and runs: React lint +
-  typecheck (`tsc --noEmit`) and `cargo check` in the Rust crate.
+  typecheck (`tsc --noEmit`) and `cargo test` in the Rust crate (upgraded from
+  `cargo check` so the `ping_returns_pong` unit test also runs in CI).
 
 ## Validation
 
-- `validate:quick` — newly created in this story. Runs ESLint + `tsc
-  --noEmit` for the React workspace and `cargo check` for the Rust crate.
+- `validate:quick` — newly created in this story (`scripts/validate-quick.sh`).
+  Runs ESLint + `tsc --noEmit` for the React workspace and `cargo test` for the
+  Rust crate (which executes the `ping_returns_pong` unit test).
 - Manual smoke — start `tauri dev`, take a screenshot of the Tauri window
   with the rendered "pong" after a click. Attach to Evidence.
 - Unit test (Rust) — `#[cfg(test)]` test on the `ping` command handler
