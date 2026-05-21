@@ -67,13 +67,11 @@ existing behavior to disturb.
 
 ## Evidence
 
-To be filled in during execution:
-
 - Workpad: `S01-tauri-react-shell.workpad.md` (sibling of this file)
-- PR: <url, once opened>
-- `validate:quick` log: <paste or link>
-- Manual smoke screenshot of "Ping → pong": <path>
-- Rust unit test output: <paste>
+- PR: https://github.com/ndthanh2605/chronicler/pull/1
+- `validate:quick`: all steps green (ESLint clean, tsc clean, `ping_returns_pong ... ok`)
+- Manual smoke: user-confirmed window opened on Windows with `cargo tauri dev`
+- Rust unit test: `test tests::ping_returns_pong ... ok` (cargo test via cmd.exe, 2026-05-21)
 
 ## Notes for the next agent
 
