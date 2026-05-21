@@ -6,7 +6,7 @@ sidecar in this story.
 
 ## Status
 
-`in_progress`
+`done`
 
 ## Lane
 
@@ -69,6 +69,7 @@ existing behavior to disturb.
 
 - Workpad: `S01-tauri-react-shell.workpad.md` (sibling of this file)
 - PR: https://github.com/ndthanh2605/chronicler/pull/1
+- Merged: https://github.com/ndthanh2605/chronicler/pull/1 at a23ed98 on 2026-05-21
 - `validate:quick`: all steps green (ESLint clean, tsc clean, `ping_returns_pong ... ok`)
 - Manual smoke: user-confirmed window opened on Windows with `cargo tauri dev`
 - Rust unit test: `test tests::ping_returns_pong ... ok` (cargo test via cmd.exe, 2026-05-21)
