@@ -1,0 +1,7 @@
+{
+  "name": "chronicler",
+  "private": true,
+  "scripts": {
+    "validate:quick": "cd frontend && pnpm lint && pnpm typecheck && cargo test --manifest-path src-tauri/Cargo.toml"
+  }
+}
