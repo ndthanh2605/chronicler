@@ -15,6 +15,12 @@ target/
 node_modules/
 dist/
 
+# PyInstaller output and built sidecar binaries (built by scripts/build-backend.ps1)
+# The .gitkeep file is kept; all built binaries are ignored.
+backend/dist/
+backend/build/
+frontend/src-tauri/binaries/chronicler-backend-*
+
 # Models (large binaries)
 models/
 *.gguf

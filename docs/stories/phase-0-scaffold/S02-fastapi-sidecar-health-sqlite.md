@@ -6,11 +6,7 @@ create the SQLite database with a `config` table on first launch.
 
 ## Status
 
-`blocked`
-
-Blocker: S01 must reach `done`. The Tauri shell, the React UI, and the
-`ping` IPC command (which this story upgrades) must exist before S02 can
-modify them.
+`in_progress`
 
 ## Lane
 

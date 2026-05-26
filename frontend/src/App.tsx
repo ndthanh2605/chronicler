@@ -1,26 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import {
+  BackendStatus,
+  type BackendConnectionStatus,
+} from "./components/BackendStatus";
 
 function App() {
-  const [response, setResponse] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [backendPort, setBackendPort] = useState<number | null>(null);
+  const [status, setStatus] = useState<BackendConnectionStatus>("idle");
+  const [payload, setPayload] = useState<Record<string, unknown> | null>(null);
+
+  useEffect(() => {
+    invoke<number>("get_backend_port")
+      .then(setBackendPort)
+      .catch(console.error);
+  }, []);
 
   async function handlePing() {
-    setError(null);
+    if (backendPort === null) return;
+    setStatus("connecting");
     try {
-      const result = await invoke<string>("ping");
-      setResponse(result);
-    } catch (e) {
-      setError(String(e));
+      const res = await fetch(`http://127.0.0.1:${backendPort}/health`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as Record<string, unknown>;
+      setPayload(data);
+      setStatus("ok");
+    } catch {
+      setStatus("unavailable");
     }
   }
 
   return (
     <main>
       <h1>Chronicler</h1>
-      <button onClick={handlePing}>Ping</button>
-      {response && <p>{response}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <BackendStatus status={status} payload={payload} onPing={handlePing} />
     </main>
   );
 }
