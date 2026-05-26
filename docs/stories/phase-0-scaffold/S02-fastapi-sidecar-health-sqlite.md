@@ -88,7 +88,7 @@ authorization, no real external network call beyond localhost).
 To be filled in during execution:
 
 - Workpad: `S02-fastapi-sidecar-health-sqlite.workpad.md`
-- PR: <url, once opened>
+- PR: https://github.com/ndthanh2605/chronicler/pull/2
 - `validate:quick` log: <paste or link>
 - Manual smoke screenshots:
   - "Ping → JSON payload": <path>
