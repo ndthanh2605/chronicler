@@ -48,3 +48,16 @@ if (-not (Test-Path $src)) {
 
 Copy-Item $src $dst -Force
 Write-Host "Placed at: $dst"
+
+# Also copy to target\debug\binaries\ for tauri dev.
+# At runtime, tauri-plugin-shell resolves the sidecar as {exe_dir}/{name}.exe
+# (no triple suffix). The triple-suffixed name in src-tauri/binaries/ is only
+# used by tauri-build for compile-time validation.
+$devBinDir = Join-Path $repoRoot "frontend\src-tauri\target\debug\binaries"
+New-Item -ItemType Directory -Force -Path $devBinDir | Out-Null
+$devDstTriple = Join-Path $devBinDir $outputName
+$devDstPlain  = Join-Path $devBinDir "chronicler-backend.exe"
+Copy-Item $src $devDstTriple -Force
+Copy-Item $src $devDstPlain  -Force
+Write-Host "Dev copy (triple) : $devDstTriple"
+Write-Host "Dev copy (plain)  : $devDstPlain"
