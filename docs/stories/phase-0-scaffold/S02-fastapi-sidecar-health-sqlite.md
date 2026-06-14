@@ -93,8 +93,21 @@ To be filled in during execution:
 - Manual smoke screenshots:
   - "Ping → JSON payload": <path>
   - DB file existence + table schema (`sqlite3 chronicler.db .schema`): <paste>
-- Rust integration test output: <paste>
-- Python integration test output: <paste>
+  - Task Manager after closing Tauri window (confirm no orphan `chronicler-backend-*.exe`): <path>
+- Rust integration test output (2026-06-13, Windows cargo, `--include-ignored`):
+  ```
+  running 1 test
+  INFO:     Started server process [12140]
+  INFO:     Uvicorn running on http://127.0.0.1:56874 (Press CTRL+C to quit)
+  INFO:     127.0.0.1:56878 - "GET /health HTTP/1.1" 200 OK
+  INFO:     127.0.0.1:56878 - "GET /health HTTP/1.1" 200 OK
+  test test_health_endpoint_json_shape ... ok
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.83s
+  ```
+  Covers spawn-with-`--port` + `/health` JSON shape. Does NOT cover teardown (see workpad —
+  the spawned process survived `Guard::drop()`'s kill as an orphan for ~1h until manually
+  killed; AC1's manual check must verify Task Manager is clean after closing the window).
+- Python integration test output (2026-06-13): `5 passed in 4.79s` (AC4 + AC5).
 
 ## Notes for the next agent
 
