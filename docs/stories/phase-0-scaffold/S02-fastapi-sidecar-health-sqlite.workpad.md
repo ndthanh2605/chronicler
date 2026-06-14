@@ -115,19 +115,45 @@ round-trip via `get_backend_port` IPC + `http://127.0.0.1:<port>/health`.
 
 ## What was not attempted
 
-- AC1 (sidecar spawns + teardown on Windows) — requires Windows + PyInstaller binary
-- AC2 (get_backend_port IPC) — requires running app on Windows
-- AC3 (Ping → /health JSON payload in React) — requires running app on Windows
-- AC6 (Backend unavailable UI state) — requires running app on Windows
-- Python integration test for AC5 has passed (5/5 ✓)
-- Rust integration test exists but is `#[ignore]` — requires PyInstaller binary
+- AC1 — sidecar spawn confirmed (11:12 session + Rust test), but **teardown is not
+  confirmed**: a human must close the `tauri dev` window and check Task Manager for a
+  lingering `chronicler-backend-x86_64-pc-windows-msvc.exe`. The Rust test showed the
+  spawned process survives `Child::kill()` as an orphan — this may also affect
+  tauri-plugin-shell's sidecar teardown.
+- AC2 (`get_backend_port` IPC returns a usable port to React) — requires running app on
+  Windows with DevTools/console inspection.
+- AC3 (Ping → `/health` JSON payload rendered in React UI) — requires running app on
+  Windows.
+- AC6 (Backend unavailable UI state) — requires running app on Windows (e.g. temporarily
+  rename/remove the dev sidecar binary and confirm the UI shows a clear message, not a
+  white screen or infinite spinner).
+- AC4/AC5 — fully covered by `backend/.venv/bin/pytest` (5/5 ✓), wired into
+  `validate:quick`. TM-004 → `implemented`.
+- AC7 — `validate:quick` already extended with ruff/pyright/pytest per the "Decisions
+  made" section (verify still wired if resuming cold).
+- Rust integration test (`--include-ignored`) — passes (see Notes above). Covers spawn +
+  `/health` JSON shape for TM-003, but not the manual-click or teardown portions.
 
 ## Next step for a cold-start agent
 
-All source code is committed. To complete the story:
-1. On Windows: run `pnpm dev:backend` (builds PyInstaller binary)
-2. Run `pnpm tauri dev` from `frontend/`
-3. Verify ACs 1–3, 6 manually
-4. Record evidence in story packet
-5. Mark TM-003 and TM-004 as `implemented`
-6. Run Rust integration test with `--include-ignored`
+All source code is committed (HEAD includes the build-backend.ps1 fix, the
+find_backend_binary fix, and evidence updates). AC1 (teardown)/AC2/AC3/AC6 require a human
+at a Windows GUI — they cannot be completed by an agent alone. To finish the story:
+1. Run `pnpm tauri dev` from `frontend/` on Windows (binary is already built at
+   `frontend/src-tauri/target/debug/binaries/chronicler-backend.exe` and
+   `frontend/src-tauri/binaries/chronicler-backend-x86_64-pc-windows-msvc.exe`; rerun
+   `pnpm dev:backend` only if these are missing/stale).
+2. Click "Ping" — confirm the rendered JSON payload matches `{"status":"ok",
+   "last_seen_at": ...}` (AC3). Screenshot it.
+3. Confirm `invoke('get_backend_port')` returns a port number (check via DevTools console
+   or temporary log) (AC2).
+4. Close the Tauri window, then check Task Manager / `Get-Process chronicler-backend-*`
+   for a lingering process — must be NONE (AC1 teardown). If one remains, this is a known
+   risk (see workpad Notes) and needs a follow-up fix before AC1 can be checked off.
+5. Temporarily break the sidecar (rename the binary) and relaunch `tauri dev`; confirm the
+   UI shows a clear "Backend unavailable" message, not a white screen/infinite spinner
+   (AC6). Restore the binary afterward.
+6. Record screenshots/results in the story packet's Evidence section, check off AC1–AC3,
+   AC6 (and AC7 if still unchecked).
+7. If all ACs pass and `validate:quick` is green: transition story status to
+   `human_review` and run `harness-git-push`.
