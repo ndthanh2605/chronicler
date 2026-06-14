@@ -25,7 +25,8 @@ function App() {
       const data = (await res.json()) as Record<string, unknown>;
       setPayload(data);
       setStatus("ok");
-    } catch {
+    } catch (err) {
+      console.error("Ping failed:", err);
       setStatus("unavailable");
     }
   }

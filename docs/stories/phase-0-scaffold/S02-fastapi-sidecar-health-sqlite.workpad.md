@@ -112,6 +112,34 @@ round-trip via `get_backend_port` IPC + `http://127.0.0.1:<port>/health`.
   first `chronicler-backend-*` file in `binaries/`, which could be the 0-byte WSL
   `x86_64-unknown-linux-gnu` placeholder rather than the real Windows `.exe` — `Command::
   spawn()` would fail on a 0-byte file. Fixed to skip zero-byte files.
+- **CORS middleware (AC3 fix)**: the GUI smoke test showed the React Ping button always
+  reported "Backend unavailable" even though `/health` returns 200 when curled directly.
+  Root cause: `tauri dev`'s webview loads the React app from `http://localhost:1420`
+  (Vite devUrl), and FastAPI had no `CORSMiddleware`, so the cross-origin `fetch` to
+  `http://127.0.0.1:<port>/health` was blocked by the browser and `App.tsx`'s `catch`
+  turned it into `status: "unavailable"`. Fixed by adding `CORSMiddleware` to
+  `backend/app/main.py` allowing `http://localhost:1420`, `http://tauri.localhost`, and
+  `tauri://localhost` (dev + built-app origins on Windows/Linux/macOS).
+- **Orphan sidecar fix (AC1)**: the Rust integration test showed the spawned
+  `chronicler-backend-*.exe` survives `CommandChild::kill()` as an orphan — confirmed live
+  on Windows (4 orphan `chronicler-backend` processes accumulated across `tauri dev`
+  launches, 2 per launch). Root cause: PyInstaller's onefile bootloader extracts and
+  launches the real interpreter as a child process; `kill()` only kills the bootloader
+  PID. Fixed `frontend/src-tauri/src/lib.rs`'s `on_window_event(Destroyed)` handler to call
+  a new `kill_backend()` helper that runs `taskkill /F /T /PID <pid>` on Windows (kills the
+  whole process tree); non-Windows falls back to `child.kill()`.
+- **Non-fatal sidecar spawn (AC6 fix)**: `setup()` previously used
+  `.expect("sidecar binary not found...")` and `.expect("failed to spawn backend
+  sidecar")` — if the binary were missing, this would panic the setup closure and crash
+  the whole app (`run().expect(...)` aborts), which is exactly the white-screen/crash AC6
+  forbids. Changed to a `match` that logs via `eprintln!` and leaves `BACKEND_CHILD` as
+  `None` on failure; `BACKEND_PORT` is still set, so React's `/health` fetch fails
+  normally and the existing "Backend unavailable" UI path (AC6) handles it gracefully.
+- Also changed `App.tsx`'s `catch {}` to `catch (err) { console.error("Ping failed:",
+  err); ... }` so future CORS/network failures are visible in devtools instead of
+  silently swallowed.
+- `cargo check --tests` (Windows) passes after these `lib.rs` changes; `.venv/bin/ruff` +
+  `.venv/bin/pyright` + `.venv/bin/pytest` (5/5) pass after the `main.py` CORS change.
 
 ## What was not attempted
 

@@ -22,6 +22,22 @@ fn get_backend_port() -> u16 {
     *BACKEND_PORT.get().expect("backend port not initialized")
 }
 
+/// Kill the sidecar and any children it spawned (PyInstaller's onefile
+/// bootloader extracts and launches the real interpreter as a child
+/// process, which `CommandChild::kill()` alone leaves running as an
+/// orphan). On Windows, `taskkill /T` kills the whole process tree.
+#[cfg(windows)]
+fn kill_backend(child: CommandChild) {
+    let _ = std::process::Command::new("taskkill")
+        .args(["/F", "/T", "/PID", &child.pid().to_string()])
+        .status();
+}
+
+#[cfg(not(windows))]
+fn kill_backend(child: CommandChild) {
+    let _ = child.kill();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -31,15 +47,22 @@ pub fn run() {
             let port = pick_free_port();
             BACKEND_PORT.set(port).expect("port already set");
 
-            let (_, child) = app
-                .shell()
-                .sidecar("binaries/chronicler-backend")
-                .expect("sidecar binary not found — run `pnpm dev:backend` first")
-                .args(["--port", &port.to_string()])
-                .spawn()
-                .expect("failed to spawn backend sidecar");
-
-            *BACKEND_CHILD.lock().unwrap() = Some(child);
+            // Spawn failures must not crash the app (AC6) — the React UI
+            // detects a dead backend via the failed `/health` fetch and
+            // shows "Backend unavailable" instead.
+            match app.shell().sidecar("binaries/chronicler-backend") {
+                Ok(cmd) => match cmd.args(["--port", &port.to_string()]).spawn() {
+                    Ok((_, child)) => {
+                        *BACKEND_CHILD.lock().unwrap() = Some(child);
+                    }
+                    Err(err) => {
+                        eprintln!("failed to spawn backend sidecar: {err}");
+                    }
+                },
+                Err(err) => {
+                    eprintln!("backend sidecar binary not found: {err}");
+                }
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![get_backend_port])
@@ -47,7 +70,7 @@ pub fn run() {
             if let tauri::WindowEvent::Destroyed = event {
                 if let Ok(mut guard) = BACKEND_CHILD.lock() {
                     if let Some(child) = guard.take() {
-                        let _ = child.kill();
+                        kill_backend(child);
                     }
                 }
             }
