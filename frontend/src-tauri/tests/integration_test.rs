@@ -12,13 +12,18 @@ use std::process::{Child, Command};
 use std::time::Duration;
 
 /// Finds the first built chronicler-backend binary in the binaries/ directory.
+/// Skips zero-byte placeholder files (e.g. the WSL `x86_64-unknown-linux-gnu`
+/// stub created by `validate:quick` so `cargo test`'s build script can
+/// validate the externalBin path on non-Windows hosts).
 fn find_backend_binary() -> Option<PathBuf> {
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("binaries");
     std::fs::read_dir(&dir).ok()?.filter_map(|e| {
-        let path = e.ok()?.path();
+        let entry = e.ok()?;
+        let path = entry.path();
         let name = path.file_name()?.to_string_lossy().into_owned();
-        (name.starts_with("chronicler-backend-") && !name.ends_with(".gitkeep"))
-            .then_some(path)
+        let is_candidate = name.starts_with("chronicler-backend-") && !name.ends_with(".gitkeep");
+        let is_nonempty = entry.metadata().map(|m| m.len() > 0).unwrap_or(false);
+        (is_candidate && is_nonempty).then_some(path)
     }).next()
 }
 
