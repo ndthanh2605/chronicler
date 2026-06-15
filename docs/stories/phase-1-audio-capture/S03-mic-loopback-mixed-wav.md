@@ -101,7 +101,7 @@ Reference meetily's Windows audio implementation (`windows.rs` and
 To be filled in during execution:
 
 - Workpad: `S03-mic-loopback-mixed-wav.workpad.md` (sibling of this file)
-- PR: <url, once opened>
+- PR: https://github.com/ndthanh2605/chronicler/pull/3 (draft — docs bundle; stacked on S02 PR #2)
 - `validate:quick` log: <paste or link>
 - Manual smoke screenshots:
   - VU meters moving during recording: <path>
