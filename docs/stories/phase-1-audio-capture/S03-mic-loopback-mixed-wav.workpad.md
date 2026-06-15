@@ -1,0 +1,103 @@
+# S03 Workpad — Mic + loopback capture into a mixed 16 kHz mono WAV
+
+## Status
+
+`todo`
+
+## Base / sync
+
+Branch `story/s03-mic-loopback-mixed-wav` is based on the S02 tip `cef8f5d`.
+S02 is **not yet landed to `main`** — it is open as PR #2, pending a human
+Windows-GUI smoke test (AC1/AC2/AC3/AC6 per the S02 workpad). The "git pull"
+equivalent for this story was: branch created directly off S02's work
+(`cef8f5d`), not off pre-S02 `main`, so the harness state this story sits on
+top of (ADR-0004, TM-004) is consistent with what S03's docs assume.
+
+## Notes
+
+2026-06-15: Authored the full S03 docs bundle this session — initiative
+note, story packet (`S03-mic-loopback-mixed-wav.md`, 8 ACs), and
+`S03-mic-loopback-mixed-wav.{design,execplan,validation}.md` — via
+subagent-driven drafting (Tasks 1 and 2 of this docs effort). This session
+(Task 3) adds ADR-0005, this workpad, TM-005..008, and two
+`HARNESS_BACKLOG.md` entries.
+
+**No Rust code was written or attempted.** S03 implementation is gated on
+S02 landing to `main` (see "Next step" below).
+
+## What this session did
+
+- Authored `docs/decisions/0005-audio-capture-library.md` (windows-rs WASAPI
+  decision, ADR-0001-shaped).
+- Authored this workpad.
+- Appended TM-005..008 to `docs/TEST_MATRIX.md` (status `planned`, story
+  `S03`).
+- Appended two entries to `docs/HARNESS_BACKLOG.md`: extracting a high-risk
+  story template, and reconciling the Rust thread-budget drift.
+
+## Decisions made
+
+- **ADR-0005**: `windows-rs` WASAPI direct (not `cpal`, not vendoring
+  meetily) — see `docs/decisions/0005-audio-capture-library.md`.
+- Three design sub-decisions resolved in `S03-mic-loopback-mixed-wav.design.md`
+  §5:
+  - §5.1 — two-stream sync model: **shared ring buffer + real-time mix**.
+  - §5.2 — WAV write policy: **streaming append with header fixup** (write
+    PCM frames continuously, back-patch the WAV header's size fields on
+    Stop/finalize).
+  - §5.3 — partial-file recovery: **auto-repair on next launch** (no DB
+    bookkeeping; detect a partial WAV header at startup and fix it in
+    place).
+- Branch was deliberately based on the S02 tip (`cef8f5d`), not pre-S02
+  `main`, so this story's harness files (ADR numbering, TM row numbering,
+  backlog) stay consistent with S02's in-flight state rather than diverging
+  and requiring a reconciliation merge later.
+
+## Open risks / not attempted
+
+1. **meetily reference not located on this machine.** ADR-0005 and the
+   execplan treat meetily's `windows.rs` / `AudioMixerRingBuffer` as a
+   read-only reference implementation, but it has not been confirmed to
+   exist in this environment. Execplan Step 0 must locate it (e.g. clone or
+   find a local copy) or fall back to MS WASAPI docs + the Chronicler design
+   spec if unavailable.
+2. **Thread-budget drift.** S03's design (§7) requires 3 Rust threads (mic
+   capture, loopback capture, mixer/writer) vs. the 2 documented in
+   `CLAUDE.md` ("1 capture thread + 1 VAD/chunker thread") — and Phase 1 has
+   no VAD thread yet. This drift is logged in `docs/HARNESS_BACKLOG.md` and
+   needs architect ratification before `CLAUDE.md` / `docs/ARCHITECTURE.md`
+   are updated.
+3. **All S03 ACs require a Windows GUI and real audio devices** (mic +
+   render-device loopback, VU meters, WAV playback/ffprobe). None of AC1–AC8
+   can be verified by an agent alone — manual smoke tests are required per
+   `validation.md`.
+4. No Rust code exists yet for this story — implementation has not started
+   (intentionally; gated below).
+
+## What was not attempted
+
+- Any Rust implementation (audio capture, mixer, WAV writer, VU meter
+  events, React UI for the meters).
+- Locating/confirming the meetily reference (execplan Step 0).
+- Any build, test, or `cargo`/`pnpm` command — this session is docs-only.
+
+## Next step for a cold-start agent
+
+1. **Land S02 first.** Run S02's Windows GUI smoke test (see
+   `docs/stories/phase-0-scaffold/S02-fastapi-sidecar-health-sqlite.workpad.md`
+   "Next step for a cold-start agent"): verify AC1 (teardown — no orphan
+   `chronicler-backend-*.exe`), AC2 (`get_backend_port`), AC3 (Ping renders
+   `/health` JSON), AC6 (Backend unavailable UI state). Check off those ACs
+   and land PR #2 to `main`.
+2. **Rebase** `story/s03-mic-loopback-mixed-wav` onto post-S02 `main`.
+3. **Confirm or locate the meetily reference** per execplan Step 0; fall
+   back to MS WASAPI loopback docs + the Chronicler design spec if it is
+   unavailable.
+4. **Execute `execplan.md` steps 1→9**, TDD-first: write `wav_writer` and
+   `mixer` unit tests before the implementation (per
+   `superpowers:test-driven-development`).
+5. **Record evidence** in `S03-mic-loopback-mixed-wav.md`'s Evidence
+   section as each AC is verified (most require a human at a Windows GUI
+   with real audio devices — see `validation.md`).
+6. Transition story status `todo` → `in_progress` only after the pull
+   (rebase) and this workpad are updated to reflect the new base.
