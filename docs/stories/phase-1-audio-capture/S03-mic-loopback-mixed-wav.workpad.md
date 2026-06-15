@@ -6,12 +6,16 @@
 
 ## Base / sync
 
-Branch `story/s03-mic-loopback-mixed-wav` is based on the S02 tip `cef8f5d`.
-S02 is **not yet landed to `main`** — it is open as PR #2, pending a human
-Windows-GUI smoke test (AC1/AC2/AC3/AC6 per the S02 workpad). The "git pull"
-equivalent for this story was: branch created directly off S02's work
-(`cef8f5d`), not off pre-S02 `main`, so the harness state this story sits on
-top of (ADR-0004, TM-004) is consistent with what S03's docs assume.
+2026-06-15 (update): **S02 has landed** — user-confirmed the Windows GUI smoke
+test (AC1/2/3/6), PR #2 squash-merged to `main` as `a6073bf`. This branch was
+then rebased `--onto main cef8f5d` (dropping the redundant S02 commits) and
+force-pushed; it now sits on a clean post-S02 `main`. PR #3 auto-closed when the
+S02 base branch was deleted → superseded by **PR #4** (base `main`, ready).
+The S02-land gate is **cleared**; S03 implementation can begin.
+
+Originally: branch was based on the S02 tip `cef8f5d` (off S02's work, not
+pre-S02 `main`) so the harness state it sits on (ADR-0004, TM-004) stayed
+consistent with what S03's docs assume.
 
 ## Notes
 

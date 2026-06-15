@@ -101,7 +101,7 @@ Reference meetily's Windows audio implementation (`windows.rs` and
 To be filled in during execution:
 
 - Workpad: `S03-mic-loopback-mixed-wav.workpad.md` (sibling of this file)
-- PR: https://github.com/ndthanh2605/chronicler/pull/3 (draft — docs bundle; stacked on S02 PR #2)
+- PR: https://github.com/ndthanh2605/chronicler/pull/4 (docs bundle; ready — supersedes #3, which auto-closed on S02 branch deletion)
 - `validate:quick` log: <paste or link>
 - Manual smoke screenshots:
   - VU meters moving during recording: <path>
@@ -111,11 +111,9 @@ To be filled in during execution:
 
 ## Notes for the next agent
 
-- S03 **code** is gated on S02 (PR #2) landing to `main`. Branch
-  `story/s03-mic-loopback-mixed-wav` is based on the **S02 tip** (`cef8f5d`,
-  S02 not yet landed) so these docs sit on top of S02's harness state
-  (ADR-0004, TM-004); before writing Rust, rebase onto post-S02 `main` once
-  PR #2 merges.
+- **S02 has landed** to `main` (PR #2 → `a6073bf`, 2026-06-15) and this branch
+  has been rebased onto post-S02 `main` — the S02-land gate is now CLEARED, so
+  S03 implementation code can begin (branch is already on a clean `main` base).
 - Read `design.md` and `execplan.md` first — they resolve the two-stream
   sync model, WAV flush/header-fixup policy, and partial-file recovery
   decisions before any Rust is written.
