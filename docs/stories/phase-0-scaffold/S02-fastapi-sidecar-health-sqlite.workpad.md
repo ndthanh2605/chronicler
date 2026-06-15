@@ -2,9 +2,14 @@
 
 ## Status
 
-`in_progress`
+`merging`
 
 ## Notes
+
+2026-06-15: Windows GUI smoke test **passed** (user-confirmed) — AC1 (no orphan
+sidecar on window close), AC2 (`get_backend_port`), AC3 (Ping → `/health` JSON),
+AC6 (Backend-unavailable UI). All 7 ACs now checked; TM-003 → `implemented`.
+Status → `merging`; landing PR #2 to `main`.
 
 2026-05-24: Synced with origin/main. Result: clean (already up to date). HEAD: c8b4352.
 Branch created: story/s02-fastapi-sidecar-health-sqlite.

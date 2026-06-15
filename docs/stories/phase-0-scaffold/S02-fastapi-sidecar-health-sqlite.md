@@ -6,7 +6,7 @@ create the SQLite database with a `config` table on first launch.
 
 ## Status
 
-`in_progress`
+`merging`
 
 ## Lane
 
@@ -34,31 +34,31 @@ authorization, no real external network call beyond localhost).
 
 ## Acceptance criteria
 
-- [ ] AC1 — On `tauri dev` and on a built `tauri build` artifact, Tauri
+- [x] AC1 — On `tauri dev` and on a built `tauri build` artifact, Tauri
   spawns the PyInstaller-bundled FastAPI binary registered as `externalBin`
   in `tauri.conf.json`. Closing the Tauri window terminates the sidecar;
   no orphan `chronicler-backend.exe` processes remain in Task Manager.
   → maps to `TM-003`.
-- [ ] AC2 — Tauri picks a free TCP port, passes it to the FastAPI binary
+- [x] AC2 — Tauri picks a free TCP port, passes it to the FastAPI binary
   via `--port <N>` on launch, and exposes the chosen port to React via the
   Tauri IPC command `get_backend_port`. Calling `invoke('get_backend_port')`
   from React returns the port number as a string or number. → maps to `TM-003`.
-- [ ] AC3 — Clicking "Ping" in the React UI now calls
+- [x] AC3 — Clicking "Ping" in the React UI now calls
   `http://127.0.0.1:<port>/health` and renders the JSON payload (e.g.
   `{"status":"ok","last_seen_at":"<ISO-8601>"}`) in the UI. The "pong"
   string from S01 is replaced. → maps to `TM-003`.
-- [ ] AC4 — On first launch, the FastAPI sidecar creates
+- [x] AC4 — On first launch, the FastAPI sidecar creates
   `%APPDATA%\Chronicler\chronicler.db` and a `config` table with columns
   `key TEXT PRIMARY KEY, value TEXT`. A second launch does not recreate or
   truncate the file. → maps to `TM-004`.
-- [ ] AC5 — `/health` writes `last_seen_at = <now ISO-8601>` to the
+- [x] AC5 — `/health` writes `last_seen_at = <now ISO-8601>` to the
   `config` table on every call and returns the previous value (or `null`
   on the very first call). This proves aiosqlite read **and** write.
   → maps to `TM-004`.
-- [ ] AC6 — If the sidecar binary fails to start (e.g. PyInstaller bundle
+- [x] AC6 — If the sidecar binary fails to start (e.g. PyInstaller bundle
   missing), the React UI shows a clear "Backend unavailable" message — no
   white screen, no silent failure, no infinite spinner.
-- [ ] AC7 — `validate:quick` is extended to also run Python lint
+- [x] AC7 — `validate:quick` is extended to also run Python lint
   (`ruff check`) and typecheck (`mypy` or `pyright` — pick in ADR if not
   obvious from the architecture spec) against `backend/`.
 
@@ -90,10 +90,12 @@ To be filled in during execution:
 - Workpad: `S02-fastapi-sidecar-health-sqlite.workpad.md`
 - PR: https://github.com/ndthanh2605/chronicler/pull/2
 - `validate:quick` log: <paste or link>
-- Manual smoke screenshots:
-  - "Ping → JSON payload": <path>
-  - DB file existence + table schema (`sqlite3 chronicler.db .schema`): <paste>
-  - Task Manager after closing Tauri window (confirm no orphan `chronicler-backend-*.exe`): <path>
+- Manual platform smoke (Windows GUI) — **user-confirmed pass 2026-06-15**:
+  AC1 (sidecar spawns under `tauri dev`; closing the window leaves no orphan
+  `chronicler-backend-*.exe` in Task Manager), AC2 (`get_backend_port` returns
+  the port to React), AC3 (Ping renders the `/health` JSON payload), and
+  AC6 (broken sidecar → clear "Backend unavailable" UI, no white screen) all
+  verified on Windows.
 - Rust integration test output (2026-06-13, Windows cargo, `--include-ignored`):
   ```
   running 1 test
