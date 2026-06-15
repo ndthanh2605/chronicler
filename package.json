@@ -2,6 +2,7 @@
   "name": "chronicler",
   "private": true,
   "scripts": {
-    "validate:quick": "cd frontend && pnpm lint && pnpm typecheck && cargo test --manifest-path src-tauri/Cargo.toml"
+    "validate:quick": "cd frontend && pnpm lint && pnpm typecheck && mkdir -p src-tauri/binaries && touch src-tauri/binaries/chronicler-backend-$(rustc -Vv | grep host | cut -d' ' -f2) && cargo test --manifest-path src-tauri/Cargo.toml && cd ../backend && .venv/bin/ruff check app && .venv/bin/pyright app && .venv/bin/pytest",
+    "dev:backend": "powershell.exe -ExecutionPolicy Bypass -File scripts/build-backend.ps1"
   }
 }

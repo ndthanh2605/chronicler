@@ -25,7 +25,7 @@ de-risks the platform plumbing before any ML or audio code lands.
 | ID  | Title | Status | Lane | Depends on |
 |-----|---|---|---|---|
 | S01 | Tauri + React shell + minimal IPC | `todo` | normal | — |
-| S02 | FastAPI sidecar + `/health` + SQLite `config` | `blocked` | normal | S01 |
+| S02 | FastAPI sidecar + `/health` + SQLite `config` | `in_progress` | normal | S01 |
 
 ## Affected product docs
 
