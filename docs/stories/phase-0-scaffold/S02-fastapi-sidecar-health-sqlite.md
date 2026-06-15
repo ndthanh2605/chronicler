@@ -6,7 +6,7 @@ create the SQLite database with a `config` table on first launch.
 
 ## Status
 
-`merging`
+`done`
 
 ## Lane
 
@@ -89,6 +89,7 @@ To be filled in during execution:
 
 - Workpad: `S02-fastapi-sidecar-health-sqlite.workpad.md`
 - PR: https://github.com/ndthanh2605/chronicler/pull/2
+- Merged: https://github.com/ndthanh2605/chronicler/pull/2 at `a6073bf` on 2026-06-15 (squash; approval = repo owner direct authorization, solo repo has no separate reviewer)
 - `validate:quick` log: <paste or link>
 - Manual platform smoke (Windows GUI) — **user-confirmed pass 2026-06-15**:
   AC1 (sidecar spawns under `tauri dev`; closing the window leaves no orphan

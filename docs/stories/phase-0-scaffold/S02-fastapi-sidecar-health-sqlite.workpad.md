@@ -2,7 +2,7 @@
 
 ## Status
 
-`merging`
+`done`
 
 ## Notes
 
