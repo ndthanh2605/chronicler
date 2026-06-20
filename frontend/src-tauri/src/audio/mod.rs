@@ -15,13 +15,15 @@
 // silence dead-code warnings there while keeping them live on the real target.
 #![cfg_attr(not(windows), allow(dead_code))]
 
+use std::path::{Path, PathBuf};
+
 pub mod meeting_id;
 pub mod mixer;
 pub mod vu;
 pub mod wav_writer;
 
-// `wasapi` (native capture) + `AudioController` land in the next commit; the
-// pure, cross-platform core (above) is committed first with its unit tests.
+#[cfg(windows)]
+pub mod wasapi;
 
 /// faster-whisper (Phase 2) consumes 16 kHz mono PCM, so that is the mixer's
 /// fixed output format regardless of each device's native capture rate.
@@ -59,4 +61,95 @@ pub struct CapturedFrame {
     pub channels: u16,
     /// Interleaved native PCM samples as f32 in [-1.0, 1.0].
     pub samples: Vec<f32>,
+}
+
+/// Resolve `%APPDATA%\Chronicler\audio\` (created if missing). The WAV for each
+/// recording is written here as `<meeting-id>.wav` (design §1, architecture
+/// Audio File Convention).
+pub fn audio_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    use tauri::Manager;
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("cannot resolve app data dir: {e}"))?
+        .join("audio");
+    std::fs::create_dir_all(&dir).map_err(|e| format!("cannot create {dir:?}: {e}"))?;
+    Ok(dir)
+}
+
+/// Scan `dir` for WAVs left unfinalized by a forced kill and repair their
+/// headers in place (design §5.3 / AC6). Returns how many files were repaired.
+/// Run once at app startup, before any new recording.
+pub fn repair_partials(dir: &Path) -> std::io::Result<usize> {
+    let mut repaired = 0;
+    let entries = match std::fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e),
+    };
+    for entry in entries {
+        let path = entry?.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("wav") {
+            continue;
+        }
+        let mut file = std::fs::OpenOptions::new().read(true).write(true).open(&path)?;
+        if wav_writer::repair(&mut file)? {
+            repaired += 1;
+        }
+    }
+    Ok(repaired)
+}
+
+/// Owns a live recording: the capture/mixer/writer threads on Windows, and the
+/// `<meeting-id>` whose WAV is being written. Mirrors S02's `Mutex<Option<…>>`
+/// + deterministic teardown discipline (design §6).
+///
+/// The type and its methods compile on every platform so the Tauri command
+/// handlers register identically; only the bodies are gated. On non-Windows
+/// hosts `start` returns a clear error (capture is Windows-only — ADR-0005).
+pub struct AudioController {
+    meeting_id: String,
+    #[cfg(windows)]
+    session: wasapi::CaptureSession,
+}
+
+impl AudioController {
+    /// Open both devices, begin streaming to `<meeting-id>.wav`, and spawn the
+    /// capture/mixer/writer threads.
+    pub fn start(app: tauri::AppHandle) -> Result<Self, String> {
+        let meeting_id = meeting_id::generate();
+        #[cfg(windows)]
+        {
+            let dir = audio_dir(&app)?;
+            let wav_path = dir.join(format!("{meeting_id}.wav"));
+            let session = wasapi::CaptureSession::start(app, wav_path)?;
+            Ok(Self {
+                meeting_id,
+                session,
+            })
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = (app, &meeting_id);
+            Err("Audio capture is only supported on Windows.".to_string())
+        }
+    }
+
+    /// The id used for this recording's WAV filename.
+    pub fn meeting_id(&self) -> &str {
+        &self.meeting_id
+    }
+
+    /// Signal the threads, join them, drain the mixer, finalize the WAV header,
+    /// and release every WASAPI handle (design §6 — "no orphan audio handles").
+    pub fn stop(self) -> Result<(), String> {
+        #[cfg(windows)]
+        {
+            self.session.stop()
+        }
+        #[cfg(not(windows))]
+        {
+            Ok(())
+        }
+    }
 }

@@ -33,6 +33,66 @@ gated and can only be built/smoke-tested by a human on Windows.
 
 ---
 
+## Implementation progress (2026-06-20)
+
+Executed execplan steps 1→8 TDD-first. Two commits on
+`story/s03-mic-loopback-mixed-wav`:
+
+- **`3b85bfc`** — pure audio core (steps 1–3, verifiable on Linux):
+  `meeting_id` (UUID v7), `wav_writer` (header + finalize + sentinel repair),
+  `mixer` (timestamp alignment, downmix, linear resample, silence-on-gap,
+  bounded drain, per-stream peak), `vu` (peak/RMS + `VuLevels` payload).
+  **23 unit tests, all green**; `windows` crate target-gated so the cross-
+  platform gate stays green off-Windows.
+- **`<second commit>`** — Windows native + controller seam + React UI
+  (steps 4–7).
+
+### Verified on this Linux host
+- `cargo test --lib`: **24 tests pass, pristine** (23 audio + S02's
+  `pick_free_port`). Satisfies **AC7** — the mixer + WAV-writer tests run
+  inside `validate:quick` (which already invokes `cargo test`; **no script
+  change was needed** for step 8).
+- `AudioController` + `start_recording`/`stop_recording` IPC compile on Linux
+  with `wasapi` gated out and bodies returning a clear "Windows-only" error
+  (the advisor's platform-seam discipline).
+- React UI (`RecordControls.tsx` + `App.tsx` wiring): **eslint + tsc clean**.
+  VU bars + Record/Stop wired to the `vu-levels` Tauri event and the two IPC
+  commands.
+
+### BUILD-PENDING on Windows (cannot be compiled or smoke-tested here)
+- `audio/wasapi/{mod,capture,loopback}.rs` — `#[cfg(windows)]`, **never
+  compiled**. Written against the **MS Core Audio "Capturing a Stream"**
+  pattern (polling drain — deliberately *not* event-driven, since WASAPI
+  loopback doesn't reliably support `AUDCLNT_STREAMFLAGS_EVENTCALLBACK`) and
+  `windows` crate 0.58. **Expect to fix a few `windows`-crate signature
+  details on the first Windows build** (Activate/GetService generics, GetBuffer
+  out-params, mix-format float assumption, optional `CoTaskMemFree` of the mix
+  format). The *algorithm* is the load-bearing part and follows the docs.
+- All of **AC1–AC6, AC8** need the Windows GUI + real devices — see
+  `validation.md`. None can be agent-verified.
+
+### Step 0 reference note
+meetily's `windows.rs` is **cpal-based**, so it was used only for the
+ring-buffer *algorithm* shape (`pipeline.rs`); the raw `windows-rs` WASAPI
+calls were grounded in **MS WASAPI docs** via microsoft-learn (execplan Step 0
+fallback). ADR-0005's "raw windows-rs" decision is unchanged.
+
+### Resampler decision (ADR-0005 left crate open at impl)
+Chose a **hand-rolled linear resampler** (not `rubato`) for Phase 1: keeps the
+pure modules dependency-light and deterministic for unit tests; adequate for
+16 kHz speech. Swappable for `rubato` later without touching alignment logic.
+
+### Next steps (Windows machine required)
+1. `pnpm tauri dev` on Windows → resolve any `windows`-crate signature errors
+   in `audio/wasapi/`.
+2. Smoke-test AC1–AC6, AC8 per `validation.md`; attach evidence (VU
+   screenshot, WMP playback, `ffprobe`, tick-injection sync) to the story.
+3. Thread-budget drift (§7 of design: 3 threads) still needs architect
+   ratification before `CLAUDE.md`/`ARCHITECTURE.md` update (logged in
+   `HARNESS_BACKLOG.md`).
+
+---
+
 2026-06-15 (update): **S02 has landed** — user-confirmed the Windows GUI smoke
 test (AC1/2/3/6), PR #2 squash-merged to `main` as `a6073bf`. This branch was
 then rebased `--onto main cef8f5d` (dropping the redundant S02 commits) and
