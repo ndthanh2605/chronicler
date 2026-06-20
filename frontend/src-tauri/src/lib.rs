@@ -4,6 +4,8 @@ use std::sync::{Mutex, OnceLock};
 use tauri_plugin_shell::process::CommandChild;
 use tauri_plugin_shell::ShellExt;
 
+mod audio;
+
 static BACKEND_PORT: OnceLock<u16> = OnceLock::new();
 static BACKEND_CHILD: Mutex<Option<CommandChild>> = Mutex::new(None);
 

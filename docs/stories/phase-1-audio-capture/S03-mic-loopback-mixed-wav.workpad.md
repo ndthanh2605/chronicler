@@ -2,9 +2,36 @@
 
 ## Status
 
-`todo`
+`in_progress`
 
 ## Base / sync
+
+2026-06-20 (impl session): Docs bundle landed to `main` via PR #4 (`f6f68dd`,
+recorded `0331c8b`). Implementation branch `story/s03-mic-loopback-mixed-wav`
+re-created fresh off `main` (in sync with `origin/main`, 0/0). Status
+transitioned `todo → in_progress`. Pre-existing uncommitted `M CLAUDE.md` and
+`?? pnpm-lock.yaml` are unrelated to S03 and deliberately kept out of S03
+commits.
+
+**Step 0 resolved — meetily reference LOCATED** at
+`~/Repos/meetily/frontend/src-tauri/`. Key finding: meetily's
+`src/audio/devices/platform/windows.rs` is **cpal-based** (forked cpal
+`rev=51c3b43` with loopback), *not* raw `windows-rs` WASAPI. Since **ADR-0005
+mandates raw `windows-rs`**, the reference split is:
+- **Mixer / ring-buffer algorithm** → meetily `src/audio/pipeline.rs`
+  (`AudioMixerRingBuffer`) is a valid language-agnostic reference.
+- **Raw WASAPI loopback activation** (`AUDCLNT_STREAMFLAGS_LOOPBACK`, COM
+  activation, `GetBuffer`/`ReleaseBuffer`) → meetily does NOT use the raw API,
+  so use **MS WASAPI docs** (microsoft-learn / context7) as primary, per the
+  execplan Step 0 fallback clause.
+
+**Environment constraint (impl session):** this WSL host has only the
+`x86_64-unknown-linux-gnu` Rust target; `cargo test` builds for **Linux**.
+Pure modules (`meeting_id`, `wav_writer`, `mixer`, VU math) are TDD'd and
+verified green here; WASAPI native code (steps 4–7) is written `cfg(windows)`-
+gated and can only be built/smoke-tested by a human on Windows.
+
+---
 
 2026-06-15 (update): **S02 has landed** — user-confirmed the Windows GUI smoke
 test (AC1/2/3/6), PR #2 squash-merged to `main` as `a6073bf`. This branch was
