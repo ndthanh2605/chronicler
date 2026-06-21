@@ -102,6 +102,7 @@ To be filled in during execution:
 
 - Workpad: `S03-mic-loopback-mixed-wav.workpad.md` (sibling of this file)
 - PR: https://github.com/ndthanh2605/chronicler/pull/4 (docs bundle; supersedes #3, which auto-closed on S02 branch deletion)
+- PR (implementation): https://github.com/ndthanh2605/chronicler/pull/5 — S03 code (4 commits); base `main`; awaiting review + Windows GUI smoke
 - Docs bundle merged: PR #4 at `f6f68dd` on 2026-06-16 (planning artifacts only; story stays `todo` — implementation pending, tracked by a future code PR)
 - Implementation (branch `story/s03-mic-loopback-mixed-wav`, 2026-06-20/21):
   - `3b85bfc` — pure audio core (meeting_id, wav_writer, mixer, vu) + 23 TDD unit tests
