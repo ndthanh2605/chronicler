@@ -6,7 +6,11 @@ live VU meters; Stop finalizes the file cleanly.
 
 ## Status
 
-`todo`
+`done` — merged to `main` via PR #5 (`d710ffc`, 2026-06-21), **self-approved**
+by the maintainer (no separate reviewer; repo has no CI). **Caveat:** only AC7
+(Rust unit tests) is empirically proven. The Windows GUI + real-device smoke
+(AC1–AC6, AC8 → TM-005/006/008) is **deferred** — owed before Phase 2
+transcription consumes real captured audio. Tracked in `## Evidence` below.
 
 ## Lane
 
@@ -102,7 +106,11 @@ To be filled in during execution:
 
 - Workpad: `S03-mic-loopback-mixed-wav.workpad.md` (sibling of this file)
 - PR: https://github.com/ndthanh2605/chronicler/pull/4 (docs bundle; supersedes #3, which auto-closed on S02 branch deletion)
-- PR (implementation): https://github.com/ndthanh2605/chronicler/pull/5 — S03 code (4 commits); base `main`; awaiting review + Windows GUI smoke
+- PR (implementation): https://github.com/ndthanh2605/chronicler/pull/5 — S03 code (4 commits); base `main`
+- **Merged:** PR #5 squash-merged to `main` at `d710ffc` on 2026-06-21
+  (**self-approved** by maintainer — no separate reviewer, no CI in repo).
+  Manual Windows GUI smoke (AC1–AC6, AC8) **deferred**, not run; only the
+  Linux host test suite (AC7) and `windows-gnu` cross-compile check are proven.
 - Docs bundle merged: PR #4 at `f6f68dd` on 2026-06-16 (planning artifacts only; story stays `todo` — implementation pending, tracked by a future code PR)
 - Implementation (branch `story/s03-mic-loopback-mixed-wav`, 2026-06-20/21):
   - `3b85bfc` — pure audio core (meeting_id, wav_writer, mixer, vu) + 23 TDD unit tests
