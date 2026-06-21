@@ -60,9 +60,12 @@ its tools over raw Bash or Read for any operation that produces more than ~20 li
 | Fetch external docs or pages | `ctx_fetch_and_index` | WebFetch |
 | Analyse a large file or log | `ctx_execute_file` | Read |
 | Create or edit files | Write / Edit (native tools) | ctx_execute |
+| Diagnostic read across ≥2 files, none edited this turn (e.g. tracing a bug through config + frontend + backend) | one `ctx_batch_execute` call (one `cat <file>` per file) + `queries` | N sequential `Read` calls |
+| Background-task logs (`*.output` from `cargo`/`pytest`/build runs) | `ctx_execute_file` + `queries` for the pass/fail line | `Read` or `Bash cat`/`tail` |
 
 Bash is still correct for: `git`, `mkdir`, `rm`, `mv`, and any command whose output is
-known to be short (e.g. `git status`, `which`, version flags).
+known to be short (e.g. `git status`, `which`, version flags). If a file read for
+diagnosis turns out to need an edit, `Read` it then — `Edit` requires it.
 
 If context-mode MCP tools become unavailable mid-session, flag it to the user immediately
 before falling back to direct Bash/Read calls.
