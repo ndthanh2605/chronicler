@@ -102,8 +102,14 @@ To be filled in during execution:
 
 - Workpad: `S03-mic-loopback-mixed-wav.workpad.md` (sibling of this file)
 - PR: https://github.com/ndthanh2605/chronicler/pull/4 (docs bundle; supersedes #3, which auto-closed on S02 branch deletion)
+- PR (implementation): https://github.com/ndthanh2605/chronicler/pull/5 — S03 code (4 commits); base `main`; awaiting review + Windows GUI smoke
 - Docs bundle merged: PR #4 at `f6f68dd` on 2026-06-16 (planning artifacts only; story stays `todo` — implementation pending, tracked by a future code PR)
-- `validate:quick` log: <paste or link>
+- Implementation (branch `story/s03-mic-loopback-mixed-wav`, 2026-06-20/21):
+  - `3b85bfc` — pure audio core (meeting_id, wav_writer, mixer, vu) + 23 TDD unit tests
+  - `33dc0f1` — WASAPI capture/loopback (`#[cfg(windows)]`) + AudioController IPC + React Record/Stop/VU UI
+  - `a88a917` — windows-gnu cross-compile-check fixes (whole crate typechecks for the Windows target)
+- `validate:quick` log: **green on Linux host** — eslint + tsc clean; `cargo test` 24/24 pass pristine (satisfies **AC7**); backend ruff/pyright clean; pytest 5/5. Windows target additionally `cargo check`-clean (`a88a917`).
+- **Pending (Windows GUI + real devices required):** AC1–AC6, AC8 manual smoke per `validation.md`.
 - Manual smoke screenshots:
   - VU meters moving during recording: <path>
   - WAV playback in Windows Media Player: <path>

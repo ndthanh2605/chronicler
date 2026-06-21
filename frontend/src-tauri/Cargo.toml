@@ -23,6 +23,26 @@ tauri-plugin-opener = "2"
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Time-ordered id for <meeting-id>.wav filenames (UUID v7 = sortable by creation time).
+uuid = { version = "1", features = ["v7"] }
+
+# WASAPI capture is Windows-only. Gating the `windows` crate behind the target
+# keeps the cross-platform `cargo test` gate (pure mixer/wav_writer unit tests)
+# building on Linux/CI hosts. Feature flags are the minimum needed for
+# IMMDeviceEnumerator activation + event-driven IAudioCaptureClient + loopback.
+[target.'cfg(target_os = "windows")'.dependencies.windows]
+version = "0.58"
+features = [
+    "Win32_Foundation",
+    "Win32_Media_Audio",
+    "Win32_Media_KernelStreaming",
+    "Win32_Media_Multimedia",
+    "Win32_System_Com",
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_Threading",
+    "Win32_System_Variant",
+    "Win32_Devices_FunctionDiscovery",
+]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
