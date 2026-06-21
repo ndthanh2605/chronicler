@@ -59,17 +59,30 @@ Executed execplan steps 1→8 TDD-first. Two commits on
   VU bars + Record/Stop wired to the `vu-levels` Tauri event and the two IPC
   commands.
 
-### BUILD-PENDING on Windows (cannot be compiled or smoke-tested here)
-- `audio/wasapi/{mod,capture,loopback}.rs` — `#[cfg(windows)]`, **never
-  compiled**. Written against the **MS Core Audio "Capturing a Stream"**
-  pattern (polling drain — deliberately *not* event-driven, since WASAPI
-  loopback doesn't reliably support `AUDCLNT_STREAMFLAGS_EVENTCALLBACK`) and
-  `windows` crate 0.58. **Expect to fix a few `windows`-crate signature
-  details on the first Windows build** (Activate/GetService generics, GetBuffer
-  out-params, mix-format float assumption, optional `CoTaskMemFree` of the mix
-  format). The *algorithm* is the load-bearing part and follows the docs.
-- All of **AC1–AC6, AC8** need the Windows GUI + real devices — see
-  `validation.md`. None can be agent-verified.
+### COMPILE-CHECKED for Windows; runtime smoke still pending
+- `audio/wasapi/{mod,capture,loopback}.rs` — `#[cfg(windows)]`. Written against
+  the **MS Core Audio "Capturing a Stream"** pattern (polling drain —
+  deliberately *not* event-driven, since WASAPI loopback doesn't reliably
+  support `AUDCLNT_STREAMFLAGS_EVENTCALLBACK`) and `windows` crate 0.58.
+- **Cross-compile-checked from this Linux host** via
+  `cargo check --target x86_64-pc-windows-gnu` (commit `a88a917`): the whole
+  crate, including all three wasapi modules, **typechecks clean for the Windows
+  target** — every windows-rs 0.58 signature (Activate/GetService generics,
+  GetBuffer out-params, `AUDCLNT_BUFFERFLAGS_SILENT` newtype `.0`,
+  `CoInitializeEx`, `Emitter::emit`) is compiler-verified. The check caught one
+  real bug a Linux gate can't see: `WAVE_FORMAT_IEEE_FLOAT` is in
+  `Win32::Media::Multimedia`, not `Media::Audio` (now fixed).
+- **How to reproduce the cross-check**: `rustup target add
+  x86_64-pc-windows-gnu`, then `cargo check --target x86_64-pc-windows-gnu`.
+  The `tauri-build`/`tauri-winres` build script needs (a) a placeholder
+  `binaries/chronicler-backend-x86_64-pc-windows-gnu.exe` and (b) a
+  `windres` on PATH; on this host a no-op stub windres (`/tmp/winstub`) was used
+  purely to get the build script past resource compilation (no linking happens
+  in `cargo check`). On a real Windows toolchain neither workaround is needed.
+- **Still pending (needs Windows GUI + real devices):** COM runtime behavior,
+  actual device open / loopback activation, and the optional `CoTaskMemFree`
+  of the mix-format pointer (one tiny leak per recording until then). All of
+  **AC1–AC6, AC8** need the Windows GUI smoke pass — see `validation.md`.
 
 ### Step 0 reference note
 meetily's `windows.rs` is **cpal-based**, so it was used only for the
