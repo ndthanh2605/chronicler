@@ -14,6 +14,10 @@ pub fn peak(samples: &[f32]) -> f32 {
 }
 
 /// Root-mean-square level of a buffer, in `[0.0, 1.0]`. Empty buffer → 0.
+///
+/// Currently only exercised by unit tests; retained alongside [`peak`] as the
+/// RMS option for the VU meter (peak is the live default — AC3).
+#[cfg_attr(windows, allow(dead_code))]
 pub fn rms(samples: &[f32]) -> f32 {
     if samples.is_empty() {
         return 0.0;

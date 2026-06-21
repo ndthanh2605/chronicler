@@ -25,9 +25,8 @@ use std::thread::JoinHandle;
 use std::time::Duration;
 
 use tauri::{AppHandle, Emitter};
-use windows::Win32::Media::Audio::{
-    AUDCLNT_BUFFERFLAGS_SILENT, WAVEFORMATEX, WAVE_FORMAT_IEEE_FLOAT,
-};
+use windows::Win32::Media::Audio::{AUDCLNT_BUFFERFLAGS_SILENT, WAVEFORMATEX};
+use windows::Win32::Media::Multimedia::WAVE_FORMAT_IEEE_FLOAT;
 
 use super::mixer::Mixer;
 use super::vu::VuLevels;

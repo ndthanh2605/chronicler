@@ -65,6 +65,7 @@ impl<W: Write + Seek> WavWriter<W> {
     }
 
     /// Borrow the underlying sink (used in tests to inspect bytes pre-finalize).
+    #[cfg(test)]
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
